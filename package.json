@@ -1,0 +1,47 @@
+{
+  "name": "mysql-sugar",
+  "version": "0.1.0",
+  "description": "Better wrapper for mysql/mysql2 for esnext & typescript",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dist": "tsc",
+    "test": "echo \"We're working on test cases...\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/innopals/node-mysql-sugar.git"
+  },
+  "keywords": [
+    "mysql",
+    "mysql2",
+    "promise",
+    "async",
+    "await",
+    "typescript"
+  ],
+  "author": "bestmike007",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/innopals/node-mysql-sugar/issues"
+  },
+  "homepage": "https://github.com/innopals/node-mysql-sugar#readme",
+  "engines": {
+    "node": ">=6.11.0"
+  },
+  "files": [
+    "dist/",
+    "bin/"
+  ],
+  "devDependencies": {
+    "@types/mysql": "^2.15.4",
+    "@types/node": "^9.6.2",
+    "jest": "^22.4.3",
+    "mysql": "^2.15.0",
+    "mysql2": "^1.5.3",
+    "ts-mockito": "^2.3.0",
+    "ts-node": "^5.0.1",
+    "tslint": "^5.9.1",
+    "typescript": "^2.8.1"
+  }
+}
