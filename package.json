@@ -1,6 +1,6 @@
 {
   "name": "mysql-sugar",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Better wrapper for mysql/mysql2 for esnext & typescript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -30,8 +30,7 @@
     "node": ">=6.11.0"
   },
   "files": [
-    "dist/",
-    "bin/"
+    "dist/"
   ],
   "devDependencies": {
     "@types/mysql": "^2.15.4",
