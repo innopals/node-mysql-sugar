@@ -1,7 +1,7 @@
-import * as mysql from 'mysql';
+import * as mysql from "mysql";
 
-export type FieldType = string | number | Date | Boolean;
-export type SqlParams = (FieldType | FieldType[][])[];
+export type FieldType = string | number | Date | boolean;
+export type SqlParams = Array<FieldType | FieldType[][]>;
 export type MySQLOrMySQL2Lib = any;
 export type MySQLPoolConfig = any;
 
@@ -93,7 +93,7 @@ export interface PoolSugar extends Connection {
   getPool(): any;
   withConnection<T>(
     func: (connection: Connection) => Promise<T>,
-    withTransaction?: boolean
+    withTransaction?: boolean,
   ): Promise<T>;
   destroy(): void;
 }
@@ -101,17 +101,16 @@ export interface PoolSugar extends Connection {
 function promisify(func: (...args: any[]) => any, paramLength?: number) {
   return (...args: any[]) => {
     return new Promise<any>((f, r) => {
-      let list: any[] = [];
+      const list: any[] = [];
       for (let i = 0; i < (paramLength || func.length - 1); i++) {
         list.push(args[i]);
       }
-      list.push(function (error: any, result: any) {
-        if (error) r(error);
-        else f(result);
+      list.push((error: any, result: any) => {
+        if (error) { r(error); } else { f(result); }
       });
       func.apply(null, list);
     });
-  }
+  };
 }
 
 function wrapConnection(that: mysql.Connection): Connection {
@@ -119,57 +118,56 @@ function wrapConnection(that: mysql.Connection): Connection {
   const query = (sql: string, params?: SqlParams): Promise<QueryResult> => {
     return new Promise<QueryResult>((f, r) => {
       that.query(sql, params, (err, results, fields: any): void => {
-        if (err) r(err);
-        else f({ results, fields });
+        if (err) { r(err); } else { f({ results, fields }); }
       });
     });
   };
 
   const cud = (sql: string, params?: SqlParams): Promise<any> => {
-    return query(sql, params).then(result => result.results);
+    return query(sql, params).then((result) => result.results);
   };
 
   return {
     query,
     select: <T>(sql: string, params?: SqlParams): Promise<SelectResult<T>> => {
-      return query(sql, params).then(result => ({
+      return query(sql, params).then((result) => ({
         rows: result.results,
-        fields: result.fields
+        fields: result.fields,
       }));
     },
     insert: cud,
     update: cud,
     delete: cud,
-    del: cud
-  }
+    del: cud,
+  };
 }
 
 function createPool(
   lib: MySQLOrMySQL2Lib,
-  config: MySQLPoolConfig
+  config: MySQLPoolConfig,
 ): PoolSugar {
   let pool: mysql.Pool | undefined = lib.createPool(config);
   function withConnection<T>(
     func: (connection: Connection) => Promise<T>,
-    withTransaction: boolean = false
+    withTransaction: boolean = false,
   ): Promise<T> {
     return new Promise((f, r) => {
-      if (!pool) return r(new Error('Connection pool already destroyed.'));
-      pool.getConnection(async function (err, connection) {
-        if (err) return r(err);
+      if (!pool) { return r(new Error("Connection pool already destroyed.")); }
+      pool.getConnection(async (err, connection) => {
+        if (err) { return r(err); }
         let result: T | undefined;
         try {
-          if (withTransaction) await promisify(connection.beginTransaction, 0)();
+          if (withTransaction) { await promisify(connection.beginTransaction, 0)(); }
           result = await func(wrapConnection(connection));
         } catch (e) {
           err = e;
         }
         try {
           if (err) {
-            if (withTransaction) await promisify(connection.rollback, 0)();
+            if (withTransaction) { await promisify(connection.rollback, 0)(); }
             r(err);
           } else {
-            if (withTransaction) await promisify(connection.commit, 0)();
+            if (withTransaction) { await promisify(connection.commit, 0)(); }
             f(result);
           }
         } catch (e) {
@@ -184,41 +182,45 @@ function createPool(
   }
   return {
     getPool() { return pool; },
-    destroy() { pool = undefined; },
+    destroy() {
+      if (!pool) { return; }
+      pool.end();
+      pool = undefined;
+    },
     withConnection,
     query: (
-      sql: string, params?: SqlParams
+      sql: string, params?: SqlParams,
     ): Promise<QueryResult> => withConnection(
-      connection => connection.query(sql, params)
+      (connection) => connection.query(sql, params),
     ),
     select: <T>(
-      sql: string, params?: SqlParams
+      sql: string, params?: SqlParams,
     ): Promise<SelectResult<T>> => withConnection(
-      connection => connection.select<T>(sql, params)
+      (connection) => connection.select<T>(sql, params),
     ),
     insert: (
-      sql: string, params?: SqlParams
+      sql: string, params?: SqlParams,
     ): Promise<InsertResult> => withConnection(
-      connection => connection.insert(sql, params)
+      (connection) => connection.insert(sql, params),
     ),
     update: (
-      sql: string, params?: SqlParams
+      sql: string, params?: SqlParams,
     ): Promise<UpdateResult> => withConnection(
-      connection => connection.update(sql, params)
+      (connection) => connection.update(sql, params),
     ),
     delete: (
-      sql: string, params?: SqlParams
+      sql: string, params?: SqlParams,
     ): Promise<DeleteResult> => withConnection(
-      connection => connection.delete(sql, params)
+      (connection) => connection.delete(sql, params),
     ),
     del: (
-      sql: string, params?: SqlParams
+      sql: string, params?: SqlParams,
     ): Promise<DeleteResult> => withConnection(
-      connection => connection.delete(sql, params)
-    )
+      (connection) => connection.delete(sql, params),
+    ),
   };
 }
 
 export {
-  createPool
-}
+  createPool,
+};
