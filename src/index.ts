@@ -143,9 +143,12 @@ function wrapConnection(that: mysql.Connection): Connection {
 }
 
 function createPool(
-  lib: MySQLOrMySQL2Lib,
+  lib: MySQLOrMySQL2Lib | string,
   config: MySQLPoolConfig,
 ): PoolSugar {
+  if (typeof lib === "string") {
+    lib = require(lib);
+  }
   let pool: mysql.Pool | undefined = lib.createPool(config);
   function withConnection<T>(
     func: (connection: Connection) => Promise<T>,
