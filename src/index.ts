@@ -1,6 +1,6 @@
 import * as mysql from "mysql";
 
-export type FieldType = string | number | Date | boolean;
+export type FieldType = string | number | Date | boolean | null | undefined;
 export type SqlParams = Array<FieldType | FieldType[][]>;
 export type MySQLOrMySQL2Lib = any;
 export type MySQLPoolConfig = any;
